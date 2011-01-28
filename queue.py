@@ -118,9 +118,9 @@ class ZooKeeperQueue(object):
 
 if __name__ == '__main__':
   if len(sys.argv) < 2:
-    print "Usage: python " + sys.argv[0] + " PORT"
+    print "Usage: python " + sys.argv[0] + " PORTNUMBER"
     sys.exit(1)
-  zk = ZooKeeperQueue("myfirstqueue", sys.argv[1])
+  zk = ZooKeeperQueue("myfirstqueue", int(sys.argv[1]))
   print "Enqueuing 100 items"
   from threading import Thread
   for i in xrange(100):
