@@ -1,5 +1,5 @@
 # Copyright (c) 2010, Henry Robinson
-# All rights reserved.
+1# All rights reserved.
 
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
@@ -48,10 +48,10 @@ class ZooKeeperQueue(object):
       self.cv.release()
 
     self.cv.acquire()
-    self.handle = zookeeper.init("localhost:2181", watcher, 10000)
+    self.handle = zookeeper.init("localhost:%d" % int(sys.argv[1]), watcher, 10000)
     self.cv.wait(10.0)
     if not self.connected:
-      print "Connection to ZooKeeper cluster timed out - is a server running on localhost:2181?"
+      print "Connection to ZooKeeper cluster timed out - is a server running on localhost:%d?" % int(sys.argv[1])
       sys.exit()
     self.cv.release()
     try:
