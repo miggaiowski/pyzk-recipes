@@ -1,5 +1,5 @@
 # Copyright (c) 2010, Henry Robinson
-1# All rights reserved.
+# All rights reserved.
 
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
@@ -35,7 +35,7 @@ class ZooKeeperQueue(object):
 
   for more details.
   """
-  def __init__(self,queuename):
+  def __init__(self,queuename, port):
     self.connected = False
     self.queuename = "/" + queuename
     self.cv = threading.Condition()
@@ -48,10 +48,10 @@ class ZooKeeperQueue(object):
       self.cv.release()
 
     self.cv.acquire()
-    self.handle = zookeeper.init("localhost:%d" % int(sys.argv[1]), watcher, 10000)
+    self.handle = zookeeper.init("localhost:%d" % port, watcher, 10000)
     self.cv.wait(10.0)
     if not self.connected:
-      print "Connection to ZooKeeper cluster timed out - is a server running on localhost:%d?" % int(sys.argv[1])
+      print "Connection to ZooKeeper cluster timed out - is a server running on localhost:%d?" % port
       sys.exit()
     self.cv.release()
     try:
@@ -120,7 +120,7 @@ if __name__ == '__main__':
   if len(sys.argv) < 2:
     print "Usage: python " + sys.argv[0] + " PORT"
     sys.exit(1)
-  zk = ZooKeeperQueue("myfirstqueue")
+  zk = ZooKeeperQueue("myfirstqueue", sys.argv[1])
   print "Enqueuing 100 items"
   from threading import Thread
   for i in xrange(100):
