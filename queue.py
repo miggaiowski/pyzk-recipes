@@ -57,22 +57,11 @@ class ZooKeeperQueue(object):
       sys.exit()
     self.cv.release()
     if is_producer:
-      while True:
-        try:
-          zookeeper.create(self.handle,self.queuename,"queue top level", [ZOO_OPEN_ACL_UNSAFE],0)
-          print "Fila criada, OK"
-          return
-        except zookeeper.NodeExistsException:
-          print "Tratorando filas existentes"
-          while True:
-            children = sorted(zookeeper.get_children(self.handle, self.queuename,None))
-            if len(children) == 0:
-              (data,stat) = zookeeper.get(self.handle, self.queuename, None)
-              zookeeper.delete(self.handle, self.queuename, stat["version"])
-              break
-            for child in children:
-              data = self.get_and_delete(self.queuename + "/" + child)
-            
+      try:
+        zookeeper.create(self.handle,self.queuename,"queue top level", [ZOO_OPEN_ACL_UNSAFE],0)
+        print "Created new Queue, OK"
+      except zookeeper.NodeExistsException:
+        print "Queue Already Exists"
 
   def __del__(self):
     zookeeper.close(self.handle)
