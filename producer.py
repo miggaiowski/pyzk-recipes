@@ -30,19 +30,20 @@ import zookeeper, threading, sys, time, queue
 NUMPRODUCTS = 10
 
 if __name__ == '__main__':
-  if len(sys.argv) < 2:
-    print "Usage: python " + sys.argv[0] + " PORTNUMBER"
+  if len(sys.argv) < 3:
+    print "Usage: python ", sys.argv[0], " PORTNUMBER", "ID"
     sys.exit(1)
   zk = queue.ZooKeeperQueue("myfirstqueue", int(sys.argv[1]), is_producer=True)
+  ID = sys.argv[2]
   try:
     lastproduct = 0
     while True:
       # Enqueueing new items, until we have a buffer of NUMPRODUCTS
-      next_item = zk.get_and_maintain()
-      while not next_item or lastproduct - int(next_item) < NUMPRODUCTS:
+      next_item = zk.get_and_maintain() # "LASTPRODUCT ID"
+      while not next_item or lastproduct - int(next_item.split()[0]) < NUMPRODUCTS:
         lastproduct += 1
-        zk.enqueue("%d" % lastproduct)
-        print "Enqueued %d" % lastproduct
+        zk.enqueue("%d %s" % (lastproduct, ID))
+        print "Enqueued %d %s" % (lastproduct, ID)
         next_item = zk.get_and_maintain()
         time.sleep(0.04)
   except KeyboardInterrupt:
