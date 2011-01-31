@@ -39,13 +39,14 @@ if __name__ == '__main__':
     lastproduct = 0
     while True:
       # Enqueueing new items, until we have a buffer of NUMPRODUCTS
-      next_item = zk.get_and_maintain() # "LASTPRODUCT ID"
-      while not next_item or lastproduct - int(next_item.split()[0]) < NUMPRODUCTS:
+#       next_item = zk.get_and_maintain() # "LASTPRODUCT ID"
+#       while not next_item or lastproduct - int(next_item.split()[0]) < NUMPRODUCTS:
+      while zk.queue_size_of_id(ID) < NUMPRODUCTS:
         lastproduct += 1
         zk.enqueue("%d %s" % (lastproduct, ID))
         print "Enqueued %d %s" % (lastproduct, ID)
-        next_item = zk.get_and_maintain()
-        time.sleep(0.04)
+#         next_item = zk.get_and_maintain()
+      time.sleep(1)
   except KeyboardInterrupt:
     pass
   zk.__del__()
