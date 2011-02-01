@@ -37,7 +37,7 @@ class ZooKeeperQueue(object):
 
   for more details.
   """
-  def __init__(self,queuename, port, is_producer=False):
+  def __init__(self,queuename, hostname, port, is_producer=False):
     self.connected = False
     self.queuename = "/" + queuename
     self.cv = threading.Condition()
@@ -50,7 +50,7 @@ class ZooKeeperQueue(object):
       self.cv.release()
 
     self.cv.acquire()
-    self.handle = zookeeper.init("localhost:%d" % port, watcher, 10000)
+    self.handle = zookeeper.init("%s:%d" % (hostname, port), watcher, 10000)
     self.cv.wait(10.0)
     if not self.connected:
       print "Connection to ZooKeeper cluster timed out - is a server running on localhost:%d?" % port
@@ -141,10 +141,12 @@ class ZooKeeperQueue(object):
         (data, stat) = zookeeper.get(self.handle, self.queuename + "/" + child, None)
       except zookeeper.NoNodeException:
         data = None
-      if data and data.split()[1] == id:
-        num += 1
+      if data:
+        data_splitted = data.split()
+        if not id or (len(data_splitted) > 1 and data.split()[1] == id):
+            num += 1
     return num
-      
+
   def block_dequeue(self):
     """
     Similar to dequeue, but if the queue is empty, block until an item
