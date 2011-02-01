@@ -33,16 +33,18 @@ if __name__ == '__main__':
     print "Usage: python", sys.argv[0], "PORTNUMBER", "ID"
     sys.exit(1)
   zk = queue.ZooKeeperQueue("myfirstqueue", int(sys.argv[1]))
-  ID = int(sys.argv[2])
+  ID = sys.argv[2]
 
   try:
-    v = zk.dequeue()
-    while v != None:
-      print "Consumer %d: %s" % (ID, v)
-      sys.stdout.flush()
-      time.sleep(0.1)
+    while True:
       v = zk.dequeue()
-    print "Nothing to be consumed"
+      while v != None:
+        print "Consumer %s: %s" % (ID, v)
+        sys.stdout.flush()
+        time.sleep(0.1)
+        v = zk.dequeue()
+      print "Nothing to be consumed, sleeping 2 seconds"
+      time.sleep(2)
   except KeyboardInterrupt:
     pass
   zk.__del__()

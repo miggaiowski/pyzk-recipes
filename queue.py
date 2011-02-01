@@ -57,22 +57,11 @@ class ZooKeeperQueue(object):
       sys.exit()
     self.cv.release()
     if is_producer:
-      while True:
-        try:
-          zookeeper.create(self.handle,self.queuename,"queue top level", [ZOO_OPEN_ACL_UNSAFE],0)
-          print "Fila criada, OK"
-          return
-        except zookeeper.NodeExistsException:
-          print "Tratorando filas existentes"
-          while True:
-            children = sorted(zookeeper.get_children(self.handle, self.queuename,None))
-            if len(children) == 0:
-              (data,stat) = zookeeper.get(self.handle, self.queuename, None)
-              zookeeper.delete(self.handle, self.queuename, stat["version"])
-              break
-            for child in children:
-              data = self.get_and_delete(self.queuename + "/" + child)
-            
+      try:
+        zookeeper.create(self.handle,self.queuename,"queue top level", [ZOO_OPEN_ACL_UNSAFE],0)
+        print "Created new Queue, OK"
+      except zookeeper.NodeExistsException:
+        print "Queue Already Exists"
 
   def __del__(self):
     zookeeper.close(self.handle)
@@ -139,6 +128,24 @@ class ZooKeeperQueue(object):
         print "Queue item %d modified in place, aborting..." % node
         raise e
 
+  def queue_size(self):
+    return len(zookeeper.get_children(self.handle, self.queuename, None))
+
+  def queue_size_of_id(self, id):
+    """ Returns how many products of producer ID are there in the queue. """
+    children = zookeeper.get_children(self.handle, self.queuename, None)
+    if len(children) == 0:
+      return 0
+    num = 0
+    for child in children:
+      try:
+        (data, stat) = zookeeper.get(self.handle, self.queuename + "/" + child, None)
+      except zookeeper.NoNodeException:
+        data = None
+      if data and data.split()[1] == id:
+        num += 1
+    return num
+      
   def block_dequeue(self):
     """
     Similar to dequeue, but if the queue is empty, block until an item
