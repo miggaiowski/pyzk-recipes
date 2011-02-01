@@ -83,7 +83,7 @@ class ZooKeeperQueue(object):
       if len(children) == 0:
         return None
       for child in children:
-        data = self.get_and_delete(self.queuename + "/" + children[0])
+        data = self.get_and_delete(self.queuename + "/" + child)
         if data:
           return data
 
@@ -117,7 +117,6 @@ class ZooKeeperQueue(object):
           break
       try:
         (data,stat) = zookeeper.get(self.handle, node, None)
-  #       zookeeper.delete(self.handle, node, stat["version"])
         return data
       except zookeeper.NoNodeException:
         # Someone deleted the node in between our get and delete

@@ -41,7 +41,7 @@ if __name__ == '__main__':
       while v != None:
         print "Consumer %s: %s" % (ID, v)
         sys.stdout.flush()
-        time.sleep(0.1)
+        time.sleep(0.2)
         v = zk.dequeue()
       print "Nothing to be consumed, sleeping 2 seconds"
       time.sleep(2)
