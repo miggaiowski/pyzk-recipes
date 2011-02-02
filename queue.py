@@ -39,7 +39,7 @@ class ZooKeeperQueue(ZooKeeperBase):
   """
   def __init__(self,queuename, hostname, port, is_producer=False):
     ZooKeeperBase.__init__(self, hostname, port)
-    self.queuename = queuename
+    self.queuename = "/" + queuename
 
     if is_producer:
       try:
@@ -120,7 +120,7 @@ class ZooKeeperQueue(ZooKeeperBase):
       self.cv.acquire()
       children = sorted(zookeeper.get_children(self.handle, self.queuename, self.__queueWatcher__))
       for child in children:
-        data = self.get_and_delete(self.queuename+"/"+children[0])
+        data = self.get_and_delete(self.queuename + "/" + child)
         if data != None:
           self.cv.release()
           return data
