@@ -23,20 +23,32 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import zookeeper, sys, time
+import zookeeper, threading, sys, time
 ZOO_OPEN_ACL_UNSAFE = {"perms":0x1f, "scheme":"world", "id" :"anyone"};
 
 class ZooKeeperBase(object):
   def __init__(self, hostname, port):
     self.connected = False
     zookeeper.set_log_stream(open("/dev/null"))
+    self.cv = threading.Condition()
     def watcher(handle,type,state,path):
       print "Connected"
+      self.cv.acquire()
       self.connected = True
+      self.cv.notify()
+      self.cv.release()
 
-    self.handle = zookeeper.init("%s:%d" % (hostname, port), watcher, 10000)
+    self.cv.acquire()
+    connection = "%s:%d" % (hostname, port)
+    self.handle = zookeeper.init(connection, watcher, 10000)
+    self.cv.wait(10.0)
     if not self.connected:
       print "Connection to ZooKeeper cluster timed out - is a server running on localhost:%d?" % port
+      sys.exit()
+    self.cv.release()
+
+    if not self.connected:
+      print "Connection to ZooKeeper cluster timed out - is a server running on %s?" % connection
       sys.exit()
 
   def __del__(self):
