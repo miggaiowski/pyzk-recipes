@@ -84,4 +84,4 @@ class ZooKeeperSemaphore(ZooKeeperBase):
         self.cv.wait()
         self.cv.release()
 
-# vim:tw=2:ts=2:et
+# vim:sw=2:ts=2:et

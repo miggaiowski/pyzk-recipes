@@ -67,4 +67,4 @@ class ZooKeeperBase(object):
       print "Item %d modified in place, aborting..." % node
       raise e
 
-# vim:tw=2:ts=2:et
+# vim:sw=2:ts=2:et
