@@ -26,31 +26,38 @@ from base import *
 class ZooKeeperSemaphore(ZooKeeperBase):
   def __init__(self, semaphorename, hostname, port, initial_value = 0):
     ZooKeeperBase.__init__(self, hostname, port)
+
+    self.semaphorename = "/" + semaphorename
     try:
       zookeeper.create(self.handle,self.semaphorename,"semaphore top level", [ZOO_OPEN_ACL_UNSAFE],0)
-      for x in xrange(
+      self.signal(initial_value)
       print "Created new semaphore, OK"
     except zookeeper.NodeExistsException:
       print "Semaphore Already Exists"
+
+  def __del__(self):
+    # clear the semaphore
+    for x in xrange(self.getValue()):
+      self.wait()
+    self.get_and_delete(self.semaphorename)
+
+    print "freeing resources"
+    ZooKeeperBase.__del__(self)
 
   def signal(self,amount = 1):
     """
     Increases the signal by @amount
     """
-    zookeeper.create(self.handle, self.semaphorename+"/item", val, [ZOO_OPEN_ACL_UNSAFE],zookeeper.SEQUENCE)
+    for x in xrange(amount):
+      zookeeper.create(self.handle, self.semaphorename+"/item", "foo", [ZOO_OPEN_ACL_UNSAFE],zookeeper.SEQUENCE)
 
   def wait(self, amount = 1):
     """
     Decreases the signal by @amount and block call if semaphore is 0
     """
-    def queue_watcher(handle,event,state,path):
-      self.cv.acquire()
-      self.cv.notify()
-      self.cv.release()
-
     while True:
       self.cv.acquire()
-      children = zookeeper.get_children(self.handle, self.semaphorename, queue_watcher)
+      children = zookeeper.get_children(self.handle, self.semaphorename, self.__queueWatcher__)
       if len(children) == 0:
         time.sleep(0.1)
         continue
@@ -64,24 +71,25 @@ class ZooKeeperSemaphore(ZooKeeperBase):
         self.cv.wait()
         self.cv.release()
 
-  def block_dequeue(self):
-    """
-    Similar to dequeue, but if the queue is empty, block until an item
-    is added and successfully removed.
-    """
-    def queue_watcher(handle,event,state,path):
-      self.cv.acquire()
-      self.cv.notify()
-      self.cv.release()
-    while True:
-      self.cv.acquire()
-      children = sorted(zookeeper.get_children(self.handle, self.semaphorename, queue_watcher))
-      for child in children:
-        data = self.get_and_delete(self.semaphorename+"/"+children[0])
-        if data != None:
-          self.cv.release()
-          return data
-        self.cv.wait()
-        self.cv.release()
+  def getValue(self):
+    return len(zookeeper.get_children(self.handle, self.semaphorename, self.__queueWatcher__))
+
+if __name__ == "__main__":
+  semaphore = ZooKeeperSemaphore('test', 'localhost', 32122)
+  print "Semaphore initialized with %d value" % semaphore.getValue()
+
+  print "Signalizing..."
+  semaphore.signal()
+  print "Semaphore with %d value" % semaphore.getValue()
+
+  print "Waiting..."
+  semaphore.wait()
+  print "Semaphore with %d value" % semaphore.getValue()
+
+  print "Waiting..."
+  semaphore.wait()
+  print "Semaphore with %d value" % semaphore.getValue()
+
+  semaphore.__del__()
 
 # vim:sw=2:ts=2:et
