@@ -26,9 +26,9 @@
 # Grupo 03
 
 import zookeeper, threading, sys, time
-ZOO_OPEN_ACL_UNSAFE = {"perms":0x1f, "scheme":"world", "id" :"anyone"};
+from base import *
 
-class ZooKeeperQueue(object):
+class ZooKeeperQueue(ZooKeeperBase):
   """
   This is a distributed queue implementation using Apache ZooKeeper.
 
@@ -38,34 +38,14 @@ class ZooKeeperQueue(object):
   for more details.
   """
   def __init__(self,queuename, hostname, port, is_producer=False):
-    self.connected = False
-    self.queuename = "/" + queuename
-    self.cv = threading.Condition()
-    zookeeper.set_log_stream(open("/dev/null"))
-    def watcher(handle,type,state,path):
-      print "Connected"
-      self.cv.acquire()
-      self.connected = True
-      self.cv.notify()
-      self.cv.release()
+    ZooKeeperBase.__init__(self, hostname, port)
 
-    self.cv.acquire()
-    self.handle = zookeeper.init("%s:%d" % (hostname, port), watcher, 10000)
-    self.cv.wait(10.0)
-    if not self.connected:
-      print "Connection to ZooKeeper cluster timed out - is a server running on localhost:%d?" % port
-      sys.exit()
-    self.cv.release()
     if is_producer:
       try:
         zookeeper.create(self.handle,self.queuename,"queue top level", [ZOO_OPEN_ACL_UNSAFE],0)
         print "Created new Queue, OK"
       except zookeeper.NodeExistsException:
         print "Queue Already Exists"
-
-  def __del__(self):
-    zookeeper.close(self.handle)
-    print "Zookeeper handle closed and resources freed."
 
   def enqueue(self,val):
     """
@@ -86,23 +66,6 @@ class ZooKeeperQueue(object):
         data = self.get_and_delete(self.queuename + "/" + child)
         if data:
           return data
-
-  def get_and_delete(self,node):
-    """
-    Atomic get-and-delete operation. Returns None on failure.
-    """
-    try:
-      (data,stat) = zookeeper.get(self.handle, node, None)
-      zookeeper.delete(self.handle, node, stat["version"])
-      return data
-    except zookeeper.NoNodeException:
-      # Someone deleted the node in between our get and delete
-      return None
-    except zookeeper.BadVersionException, e:
-      # Someone is modifying the queue in place. You can reasonably
-      # either retry to re-read the item, or abort.
-      print "Queue item %d modified in place, aborting..." % node
-      raise e
 
   def get_and_maintain(self):
       """
@@ -167,3 +130,4 @@ class ZooKeeperQueue(object):
         self.cv.wait()
         self.cv.release()
 
+# vim:tw=2:ts=2:et
