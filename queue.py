@@ -117,14 +117,10 @@ class ZooKeeperQueue(ZooKeeperBase):
     is added and successfully removed.
     """
     while True:
-      self.cv.acquire()
       children = sorted(zookeeper.get_children(self.handle, self.queuename, self.__queueWatcher__))
       for child in children:
         data = self.get_and_delete(self.queuename + "/" + child)
         if data != None:
-          self.cv.release()
           return data
-        self.cv.wait()
-        self.cv.release()
 
 # vim:sw=2:ts=2:et

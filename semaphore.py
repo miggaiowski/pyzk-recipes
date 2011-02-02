@@ -56,7 +56,6 @@ class ZooKeeperSemaphore(ZooKeeperBase):
     Decreases the signal by @amount and block call if semaphore is 0
     """
     while True:
-      self.cv.acquire()
       children = zookeeper.get_children(self.handle, self.semaphorename, self.__queueWatcher__)
       if len(children) == 0:
         time.sleep(0.1)
@@ -65,11 +64,7 @@ class ZooKeeperSemaphore(ZooKeeperBase):
       for child in children:
         data = self.get_and_delete(self.semaphorename + "/" + child)
         if data != None:
-          self.cv.release()
           return data
-        # so the lock may be released several times on this for loop!?
-        self.cv.wait()
-        self.cv.release()
 
   def getValue(self):
     return len(zookeeper.get_children(self.handle, self.semaphorename, self.__queueWatcher__))
