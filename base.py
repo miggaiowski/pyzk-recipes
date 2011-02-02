@@ -50,6 +50,12 @@ class ZooKeeperBase(object):
     zookeeper.close(self.handle)
     print "Zookeeper handle closed and resources freed."
 
+  def __queueWatcher__(self,handle,event,state,path):
+    self.cv.acquire()
+    self.cv.notify()
+    self.cv.release()
+
+
   def get_and_delete(self,node):
     """
     Atomic get-and-delete operation. Returns None on failure.

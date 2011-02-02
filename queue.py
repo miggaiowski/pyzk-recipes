@@ -116,13 +116,9 @@ class ZooKeeperQueue(ZooKeeperBase):
     Similar to dequeue, but if the queue is empty, block until an item
     is added and successfully removed.
     """
-    def queue_watcher(handle,event,state,path):
-      self.cv.acquire()
-      self.cv.notify()
-      self.cv.release()
     while True:
       self.cv.acquire()
-      children = sorted(zookeeper.get_children(self.handle, self.queuename, queue_watcher))
+      children = sorted(zookeeper.get_children(self.handle, self.queuename, self.__queueWatcher__))
       for child in children:
         data = self.get_and_delete(self.queuename+"/"+children[0])
         if data != None:
