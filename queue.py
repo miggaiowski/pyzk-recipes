@@ -39,6 +39,7 @@ class ZooKeeperQueue(ZooKeeperBase):
   """
   def __init__(self,queuename, hostname, port, is_producer=False):
     ZooKeeperBase.__init__(self, hostname, port)
+    self.queuename = queuename
 
     if is_producer:
       try:
