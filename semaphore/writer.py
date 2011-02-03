@@ -16,7 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-__AUTHOR__ = "Gustavo Serra Scalet <gsscalet@gmail.com>"
+__AUTHOR__ = "David Kurka <david.kurka@gmail.com>"
 
 # Grupo 03
 
@@ -25,30 +25,35 @@ import zookeeper, semaphore
 MIN_ARGS = 1
 __VERSION__ = 0.1
 
-def writer(host, port):
+def writer(host, port, text="o gut realmente eh mto gutbobo"):
   """
   Connects to zookeeper and writes #TODO#
   """
- #  zk = queue.ZooKeeperQueue("myfirstqueue", host, port, is_writer=True)
- #  try:
- #    lastproduct = 0
- #    while True:
- #      # Enqueueing new items, until we have a buffer of NUMPRODUCTS
- #      while zk.queue_size_of_id(id) < NUMPRODUCTS:
- #        lastproduct += 1
- #        zk.enqueue("%d %s" % (lastproduct, id))
- #        print "Enqueued %d %s" % (lastproduct, id)
- #      time.sleep(delay)
- #  except KeyboardInterrupt:
- #    pass
- #  zk.__del__()
- #  print "Done"
+  emptyBuffers = ZooKeeperSemaphore("emptybuffers", host, port, buffersize)
+  fullBuffers = ZooKeeperSemaphore("fullbuffers", host, port, buffersize)
+  try:
+    writePt = 0
+    for letter in text:
+      #sleep random time
+      #wait for avaiable resourcess
+      emptyBuffers.wait()
+      #write on shared memory
+      shared[writePt] = letter #TODO: find out how to share a structure
+      print "Writer: shared[%d] = %c\n" %writePt, %letter
+      writePt = (writePt + 1) % buffersize
+      #aloow reading
+      fullBuffers.signal()
+  except KeyboardInterrupt:
+    pass
+  emptyBuffers.__del__()
+  fullBuffers.__del__()
 
 if __name__ == "__main__":
   from sys import argv, exit
   from os import sep
   from optparse import OptionParser
 
+  #options: -verbose -buffersize=5 -data_lenght=30 -data
   options = {
     # 'one_letter_option' : ['full_option_name',
       # "Help",

@@ -16,7 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-__AUTHOR__ = "Gustavo Serra Scalet <gsscalet@gmail.com>"
+__AUTHOR__ = "David Kurka <david.kurka@gmail.com>"
 
 # Grupo 03
 
@@ -29,60 +29,63 @@ def reader(host, port):
   """
   Connects to zookeeper and reads #TODO#
   """
-#   zk = queue.ZooKeeperQueue("myfirstqueue", host, port)
-# 
-#   try:
-#     while True:
-#       v = zk.dequeue()
-#       while v != None:
-#         print "reader %s: %s" % (id, v)
-#         sys.stdout.flush()
-#         time.sleep(delay)
-#         v = zk.dequeue()
-#       print "Nothing to be consumed, sleeping 2 seconds"
-#       time.sleep(2)
-#   except KeyboardInterrupt:
-#     pass
-#   zk.__del__()
-#   print "Done"
+  emptyBuffers = ZooKeeperSemaphore("emptybuffers", host, port, buffersize)
+  fullBuffers = ZooKeeperSemaphore("fullbuffers", host, port, buffersize)
+  try:
+    readPt = 0
+    for letter in buffersize:
+      #waiting for writer
+      fullBuffers.wait()
+      #read from shared memory
+      data = shared[readPt]#TODO: find out how to share a structure
+      print "\t\tReader: shared[%d] = %c\n" %readPt, %data
+      readPt = (readPt + 1) % buffersize
+      #allow writing
+      emptyBuffers.signal()
+      #sleep random time
+  except KeyboardInterrupt:
+    pass
+  emptyBuffers.__del__()
+  fullBuffers.__del__()
 
 if __name__ == "__main__":
-    from sys import argv, exit
-    from os import sep
-    from optparse import OptionParser
+  from sys import argv, exit
+  from os import sep
+  from optparse import OptionParser
 
-    options = {
-        # 'one_letter_option' : ['full_option_name',
-            # "Help",
-            # default_value],
-        'H' : ['host',
-            "Host to connect (default: localhost)",
-            "localhost"],
-    }
+  #options: -verbose -buffersize -data_lenght
+  options = {
+      # 'one_letter_option' : ['full_option_name',
+          # "Help",
+          # default_value],
+      'H' : ['host',
+          "Host to connect (default: localhost)",
+          "localhost"],
+  }
 
-    options_list = ' '.join(["[-%s --%s]" % (o, options[o][0]) for o in options])
-    desc = reader.__doc__.replace('  ','')
-    parser = OptionParser("%%prog %s PORT" % options_list,
-            description=desc,
-            version="%%prog %s" % __VERSION__)
+  options_list = ' '.join(["[-%s --%s]" % (o, options[o][0]) for o in options])
+  desc = reader.__doc__.replace('  ','')
+  parser = OptionParser("%%prog %s PORT" % options_list,
+          description=desc,
+          version="%%prog %s" % __VERSION__)
 
-    for o in options:
-        shorter = '-' + o
-        longer = '--' + options[o][0]
-        if type(options[o][2]) is bool:
-            parser.add_option(shorter, longer, dest=o, help=options[o][1],
-                action="store_true", default=options[o][2])
-        elif type(options[o][2]) is str:
-            parser.add_option(shorter, longer, dest=o, help=options[o][1],
-                action="store", type="string", default=options[o][2])
+  for o in options:
+      shorter = '-' + o
+      longer = '--' + options[o][0]
+      if type(options[o][2]) is bool:
+          parser.add_option(shorter, longer, dest=o, help=options[o][1],
+              action="store_true", default=options[o][2])
+      elif type(options[o][2]) is str:
+          parser.add_option(shorter, longer, dest=o, help=options[o][1],
+              action="store", type="string", default=options[o][2])
 
-    (opt, args) = parser.parse_args(argv)
-    if len(args) < MIN_ARGS + 1:
-        # not enough arguments
-        print """ERROR: not enough arguments.
+  (opt, args) = parser.parse_args(argv)
+  if len(args) < MIN_ARGS + 1:
+      # not enough arguments
+      print """ERROR: not enough arguments.
 Try `%s --help' for more information""" % args[0].split(sep)[-1]
-        exit(1)
+      exit(1)
 
-    reader(opt.H, int(args[1]))
+  reader(opt.H, int(args[1]))
 
 # vim:sw=2:ts=2:et
