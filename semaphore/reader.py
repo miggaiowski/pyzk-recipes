@@ -22,34 +22,34 @@ __AUTHOR__ = "David Kurka <david.kurka@gmail.com>"
 
 import zookeeper, semaphore, time, random
 
-MIN_ARGS = 1
+MIN_ARGS = 0
 __VERSION__ = 0.1
 
-  reader(opt.H, opt.b, opt.s, int(args[1]))
+#  reader(opt.H, opt.b, opt.s, int(args[1]))
 def reader(host, buffersize, textsize, port):
   """
   Connects to zookeeper and reads
   """
-  emptyBuffers = ZooKeeperSemaphore("emptybuffers", host, port, buffersize)
-  fullBuffers = ZooKeeperSemaphore("fullbuffers", host, port, buffersize)
+  emptyBuffers = semaphore.ZooKeeperSemaphore("emptybuffers", host, port, buffersize)
+  fullBuffers = semaphore.ZooKeeperSemaphore("fullbuffers", host, port, buffersize)
   try:
     readPt = 0
-    for letter in textsize:
+    for letter in xrange(textsize):
       #waiting for writer
       fullBuffers.wait()
 
       #read from shared memory
-      filename = "buffer"+readPt
+      filename = "buffer" + str(readPt)
       f = open(filename, 'r')
-      f.read()
+      data = f.read()
       f.close()
-      print "\t\tReader: buffer%d = %c\n" %readPt, %data
+      print "\t\tReader: buffer%d = %c\n" % (readPt, data)
       readPt = (readPt + 1) % buffersize
 
       #allow writing
       emptyBuffers.signal()
       #sleep random time
-      time.sleep(random.random()*10)
+      time.sleep(random.random())
   except KeyboardInterrupt:
     pass
   emptyBuffers.__del__()
@@ -69,10 +69,10 @@ if __name__ == "__main__":
       "localhost"],
     'b' : ['buffersize',
       "Space avaiable for writing (default: 5)",
-      5],
+      "5"],
     's' : ['data_lenght',
       "Lenght of complete message (default: 30)",
-      30],
+      "30"],
   }
 
   options_list = ' '.join(["[-%s --%s]" % (o, options[o][0]) for o in options])
@@ -98,6 +98,6 @@ if __name__ == "__main__":
 Try `%s --help' for more information""" % args[0].split(sep)[-1]
       exit(1)
 
-  reader(opt.H, opt.b, opt.s, int(args[1]))
+  reader(opt.H, int(opt.b), int(opt.s), int(args[1]))
 
 # vim:sw=2:ts=2:et

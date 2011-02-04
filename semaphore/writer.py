@@ -22,30 +22,30 @@ __AUTHOR__ = "David Kurka <david.kurka@gmail.com>"
 
 import zookeeper, semaphore, time, random
 
-MIN_ARGS = 1
+MIN_ARGS = 0
 __VERSION__ = 0.1
 
-  writer(opt.H, opt.b, opt.s, opt.t, int(args[1]))
+#  writer(opt.H, opt.b, opt.s, opt.t, int(args[1]))
 def writer(host, buffersize, text, port):
   """
   Connects to zookeeper and writes
   """
-  emptyBuffers = ZooKeeperSemaphore("emptybuffers", host, port, buffersize)
-  fullBuffers = ZooKeeperSemaphore("fullbuffers", host, port, buffersize)
+  emptyBuffers = semaphore.ZooKeeperSemaphore("emptybuffers", host, port, buffersize)
+  fullBuffers = semaphore.ZooKeeperSemaphore("fullbuffers", host, port, buffersize)
   try:
     writePt = 0
     for letter in text:
       #sleep random time
-      time.sleep(random.random()*10)
+      time.sleep(random.random())
       #wait for avaiable resourcess
       emptyBuffers.wait()
 
       #write on shared memory
-      filename = "buffer"+writePt
+      filename = "buffer" + str(writePt)
       f = open(filename, 'w')
       f.write(letter)
       f.close()
-      print "Writer: buffer%d = %c\n" %writePt, %letter
+      print "Writer: buffer%d = %c\n" % (writePt, letter)
       writePt = (writePt + 1) % buffersize
 
       #aloow reading
@@ -69,7 +69,7 @@ if __name__ == "__main__":
       "localhost"],
     'b' : ['buffersize',
       "Space avaiable for writing (default: 5)",
-      5],
+      "5"],
     't' : ['text',
       "Message to be written and read",
       "o gut realmente eh mto gutbobo"],
@@ -98,6 +98,6 @@ if __name__ == "__main__":
 Try `%s --help' for more information""" % args[0].split(sep)[-1]
     exit(1)
 
-  writer(opt.H, opt.b, opt.t, int(args[1]))
+  writer(opt.H, int(opt.b), opt.t, int(args[1]))
 
 # vim:sw=2:ts=2:et
