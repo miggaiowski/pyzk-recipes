@@ -20,14 +20,15 @@ __AUTHOR__ = "David Kurka <david.kurka@gmail.com>"
 
 # Grupo 03
 
-import zookeeper, semaphore
+import zookeeper, semaphore, time, random
 
 MIN_ARGS = 1
 __VERSION__ = 0.1
 
-def writer(host, port, text="o gut realmente eh mto gutbobo"):
+  writer(opt.H, opt.b, opt.s, opt.t, int(args[1]))
+def writer(host, buffersize, text, port):
   """
-  Connects to zookeeper and writes #TODO#
+  Connects to zookeeper and writes
   """
   emptyBuffers = ZooKeeperSemaphore("emptybuffers", host, port, buffersize)
   fullBuffers = ZooKeeperSemaphore("fullbuffers", host, port, buffersize)
@@ -35,12 +36,18 @@ def writer(host, port, text="o gut realmente eh mto gutbobo"):
     writePt = 0
     for letter in text:
       #sleep random time
+      time.sleep(random.random()*10)
       #wait for avaiable resourcess
       emptyBuffers.wait()
+
       #write on shared memory
-      shared[writePt] = letter #TODO: find out how to share a structure
-      print "Writer: shared[%d] = %c\n" %writePt, %letter
+      filename = "buffer"+writePt
+      f = open(filename, 'w')
+      f.write(letter)
+      f.close()
+      print "Writer: buffer%d = %c\n" %writePt, %letter
       writePt = (writePt + 1) % buffersize
+
       #aloow reading
       fullBuffers.signal()
   except KeyboardInterrupt:
@@ -53,7 +60,6 @@ if __name__ == "__main__":
   from os import sep
   from optparse import OptionParser
 
-  #options: -verbose -buffersize=5 -data_lenght=30 -data
   options = {
     # 'one_letter_option' : ['full_option_name',
       # "Help",
@@ -61,6 +67,12 @@ if __name__ == "__main__":
     'H' : ['host',
       "Host to connect (default: localhost)",
       "localhost"],
+    'b' : ['buffersize',
+      "Space avaiable for writing (default: 5)",
+      5],
+    't' : ['text',
+      "Message to be written and read",
+      "o gut realmente eh mto gutbobo"],
   }
 
   options_list = ' '.join(["[-%s --%s]" % (o, options[o][0]) for o in options])
@@ -86,6 +98,6 @@ if __name__ == "__main__":
 Try `%s --help' for more information""" % args[0].split(sep)[-1]
     exit(1)
 
-  writer(opt.H, int(args[1]))
+  writer(opt.H, opt.b, opt.t, int(args[1]))
 
 # vim:sw=2:ts=2:et

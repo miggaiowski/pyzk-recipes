@@ -20,29 +20,36 @@ __AUTHOR__ = "David Kurka <david.kurka@gmail.com>"
 
 # Grupo 03
 
-import zookeeper, semaphore
+import zookeeper, semaphore, time, random
 
 MIN_ARGS = 1
 __VERSION__ = 0.1
 
-def reader(host, port):
+  reader(opt.H, opt.b, opt.s, int(args[1]))
+def reader(host, buffersize, textsize, port):
   """
-  Connects to zookeeper and reads #TODO#
+  Connects to zookeeper and reads
   """
   emptyBuffers = ZooKeeperSemaphore("emptybuffers", host, port, buffersize)
   fullBuffers = ZooKeeperSemaphore("fullbuffers", host, port, buffersize)
   try:
     readPt = 0
-    for letter in buffersize:
+    for letter in textsize:
       #waiting for writer
       fullBuffers.wait()
+
       #read from shared memory
-      data = shared[readPt]#TODO: find out how to share a structure
-      print "\t\tReader: shared[%d] = %c\n" %readPt, %data
+      filename = "buffer"+readPt
+      f = open(filename, 'r')
+      f.read()
+      f.close()
+      print "\t\tReader: buffer%d = %c\n" %readPt, %data
       readPt = (readPt + 1) % buffersize
+
       #allow writing
       emptyBuffers.signal()
       #sleep random time
+      time.sleep(random.random()*10)
   except KeyboardInterrupt:
     pass
   emptyBuffers.__del__()
@@ -53,14 +60,19 @@ if __name__ == "__main__":
   from os import sep
   from optparse import OptionParser
 
-  #options: -verbose -buffersize -data_lenght
   options = {
-      # 'one_letter_option' : ['full_option_name',
-          # "Help",
-          # default_value],
-      'H' : ['host',
-          "Host to connect (default: localhost)",
-          "localhost"],
+    # 'one_letter_option' : ['full_option_name',
+      # "Help",
+      # default_value],
+    'H' : ['host',
+      "Host to connect (default: localhost)",
+      "localhost"],
+    'b' : ['buffersize',
+      "Space avaiable for writing (default: 5)",
+      5],
+    's' : ['data_lenght',
+      "Lenght of complete message (default: 30)",
+      30],
   }
 
   options_list = ' '.join(["[-%s --%s]" % (o, options[o][0]) for o in options])
@@ -86,6 +98,6 @@ if __name__ == "__main__":
 Try `%s --help' for more information""" % args[0].split(sep)[-1]
       exit(1)
 
-  reader(opt.H, int(args[1]))
+  reader(opt.H, opt.b, opt.s, int(args[1]))
 
 # vim:sw=2:ts=2:et
