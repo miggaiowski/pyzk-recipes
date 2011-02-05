@@ -25,7 +25,6 @@ import zookeeper, semaphore, time, random
 MIN_ARGS = 0
 __VERSION__ = 0.1
 
-#  reader(opt.H, opt.b, opt.s, int(args[1]))
 def reader(host, buffersize, textsize, port):
   """
   Connects to zookeeper and reads
@@ -69,10 +68,10 @@ if __name__ == "__main__":
       "localhost"],
     'b' : ['buffersize',
       "Space avaiable for writing (default: 5)",
-      "5"],
+      5],
     's' : ['data_lenght',
       "Lenght of complete message (default: 30)",
-      "30"],
+      30],
   }
 
   options_list = ' '.join(["[-%s --%s]" % (o, options[o][0]) for o in options])
@@ -87,6 +86,9 @@ if __name__ == "__main__":
       if type(options[o][2]) is bool:
           parser.add_option(shorter, longer, dest=o, help=options[o][1],
               action="store_true", default=options[o][2])
+      elif type(options[o][2]) is int:
+          parser.add_option(shorter, longer, dest=o, help=options[o][1],
+              action="store", type="int", default=options[o][2])
       elif type(options[o][2]) is str:
           parser.add_option(shorter, longer, dest=o, help=options[o][1],
               action="store", type="string", default=options[o][2])
@@ -98,6 +100,6 @@ if __name__ == "__main__":
 Try `%s --help' for more information""" % args[0].split(sep)[-1]
       exit(1)
 
-  reader(opt.H, int(opt.b), int(opt.s), int(args[1]))
+  reader(opt.H, opt.b, opt.s, int(args[1]))
 
 # vim:sw=2:ts=2:et
