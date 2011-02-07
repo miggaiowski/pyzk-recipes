@@ -25,7 +25,6 @@ import zookeeper, semaphore, time, random
 MIN_ARGS = 0
 __VERSION__ = 0.1
 
-#  writer(opt.H, opt.b, opt.s, opt.t, int(args[1]))
 def writer(host, buffersize, text, port):
   """
   Connects to zookeeper and writes
@@ -45,15 +44,15 @@ def writer(host, buffersize, text, port):
       f = open(filename, 'w')
       f.write(letter)
       f.close()
-      print "Writer: buffer%d = %c\n" % (writePt, letter)
+      print "Writer: buffer%d = %c" % (writePt, letter)
       writePt = (writePt + 1) % buffersize
 
       #aloow reading
       fullBuffers.signal()
   except KeyboardInterrupt:
     pass
-  emptyBuffers.__del__()
-  fullBuffers.__del__()
+  # emptyBuffers.__del__()
+  # fullBuffers.__del__()
 
 if __name__ == "__main__":
   from sys import argv, exit

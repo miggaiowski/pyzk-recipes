@@ -25,7 +25,6 @@ import zookeeper, semaphore, time, random
 MIN_ARGS = 0
 __VERSION__ = 0.1
 
-#  reader(opt.H, opt.b, opt.s, int(args[1]))
 def reader(host, buffersize, textsize, port):
   """
   Connects to zookeeper and reads
@@ -43,7 +42,7 @@ def reader(host, buffersize, textsize, port):
       f = open(filename, 'r')
       data = f.read()
       f.close()
-      print "\t\tReader: buffer%d = %c\n" % (readPt, data)
+      print "Reader: buffer%d = %c" % (readPt, data)
       readPt = (readPt + 1) % buffersize
 
       #allow writing
