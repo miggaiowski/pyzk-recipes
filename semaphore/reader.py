@@ -42,7 +42,7 @@ def reader(host, buffersize, textsize, port):
       f = open(filename, 'r')
       data = f.read()
       f.close()
-      print "\t\tReader: buffer%d = %c\n" % (readPt, data)
+      print "Reader: buffer%d = %c" % (readPt, data)
       readPt = (readPt + 1) % buffersize
 
       #allow writing
