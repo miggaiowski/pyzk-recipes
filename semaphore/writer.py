@@ -20,7 +20,9 @@ __AUTHOR__ = "David Kurka <david.kurka@gmail.com>"
 
 # Grupo 03
 
-import zookeeper, semaphore, time, random
+import zookeeper, semaphore, time, random, os
+# change to this directory
+os.chdir(os.path.dirname(os.path.realpath(__file__)))
 
 MIN_ARGS = 1
 __VERSION__ = 0.1
