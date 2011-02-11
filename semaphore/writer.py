@@ -41,11 +41,11 @@ def writer(host, buffersize, text, port):
       emptyBuffers.wait()
 
       # write on shared memory
-      filename = "buffer" + str(writePt)
+      filename = BUFFER_PATTERN % writePt
       f = open(filename, 'w')
       f.write(letter)
       f.close()
-      print "Writer: buffer%d = %c" % (writePt, letter)
+      print "Writer: %s = %c" % (filename, letter)
       writePt = (writePt + 1) % buffersize
 
       # allow reading

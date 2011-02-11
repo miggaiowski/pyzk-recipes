@@ -17,6 +17,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 __AUTHOR__ = "Gustavo Serra Scalet <gsscalet@gmail.com>"
+BUFFER_PATTERN = "buffer%%05d.dat"
+_CHILD_KEY = "item"
 
 # Grupo 03
 
@@ -27,9 +29,10 @@ class ZooKeeperSemaphore(ZooKeeperBase):
   def __init__(self, semaphorename, hostname, port, initial_value = 0):
     ZooKeeperBase.__init__(self, hostname, port)
 
-    self.semaphorename = "/" + semaphorename
+    self.semaphore_name = "/" + semaphorename
+    self.child_name = "%s/%s" % (self.semaphore_name, _CHILD_KEY)
     try:
-      zookeeper.create(self.handle,self.semaphorename,"semaphore top level", [ZOO_OPEN_ACL_UNSAFE],0)
+      zookeeper.create(self.handle,self.semaphore_name,"semaphore top level", [ZOO_OPEN_ACL_UNSAFE],0)
       self.signal(initial_value)
       print "Created new semaphore, OK"
     except zookeeper.NodeExistsException:
@@ -39,7 +42,7 @@ class ZooKeeperSemaphore(ZooKeeperBase):
     # clear the semaphore
     for x in xrange(self.getValue()):
       self.wait()
-    self.get_and_delete(self.semaphorename)
+    self.get_and_delete(self.semaphore_name)
 
     print "freeing resources"
     ZooKeeperBase.__del__(self)
@@ -49,25 +52,36 @@ class ZooKeeperSemaphore(ZooKeeperBase):
     Increases the signal by @amount
     """
     for x in xrange(amount):
-      zookeeper.create(self.handle, self.semaphorename+"/item", "foo", [ZOO_OPEN_ACL_UNSAFE],zookeeper.SEQUENCE)
+      zookeeper.create(self.handle, self.child_name, "foo", [ZOO_OPEN_ACL_UNSAFE],zookeeper.SEQUENCE)
 
   def wait(self, amount = 1):
     """
     Decreases the signal by @amount and block call if semaphore is 0
     """
     while True:
-      children = zookeeper.get_children(self.handle, self.semaphorename, self.__queueWatcher__)
+      children = zookeeper.get_children(self.handle, self.semaphore_name, self.__queueWatcher__)
       if len(children) == 0:
         time.sleep(0.1)
         continue
 
       for child in children:
-        data = self.get_and_delete(self.semaphorename + "/" + child)
+        data = self.get_and_delete("%s/%s" % (self.semaphore_name, child))
         if data != None:
           return data
 
   def getValue(self):
-    return len(zookeeper.get_children(self.handle, self.semaphorename, self.__queueWatcher__))
+    """
+    Returns the how many times (signal() - wait()) were called
+    """
+    return len(zookeeper.get_children(self.handle, self.semaphore_name, self.__queueWatcher__))
+
+  def lastID(self):
+    """
+    Returns the id of the last item signalled on this semaphore
+    """
+    children = zookeeper.get_children(self.handle, self.semaphore_name, self.__queueWatcher__)
+    last_added = sorted(children)[-1]
+    return int(last_added.replace(_CHILD_KEY, ''))
 
 if __name__ == "__main__":
   semaphore = ZooKeeperSemaphore('test', 'localhost', 32122)

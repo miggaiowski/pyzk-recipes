@@ -39,12 +39,12 @@ def reader(host, buffersize, textsize, port):
       fullBuffers.wait()
 
       # read from shared memory and remove it
-      filename = "buffer" + str(readPt)
+      filename = BUFFER_PATTERN % readPt
       f = open(filename, 'r')
       data = f.read()
       f.close()
       os.remove(filename)
-      print "Reader: buffer%d = %c" % (readPt, data)
+      print "Reader: %s = %c" % (filename, data)
       readPt = (readPt + 1) % buffersize
 
       # allow writing
