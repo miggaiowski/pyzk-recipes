@@ -34,6 +34,7 @@ def writer(host, buffersize, text, port):
   # create the semaphores, if they don't exist
   emptybuffers = semaphore.ZooKeeperSemaphore("emptybuffers", host, port, buffersize)
   fullbuffers = semaphore.ZooKeeperSemaphore("fullbuffers", host, port)
+
   try:
     writePt = 0
     for letter in text:
@@ -54,8 +55,6 @@ def writer(host, buffersize, text, port):
       fullbuffers.signal()
   except KeyboardInterrupt:
     pass
-  # emptybuffers.__del__()
-  # fullbuffers.__del__()
 
 if __name__ == "__main__":
   from sys import argv, exit
