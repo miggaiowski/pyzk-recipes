@@ -55,7 +55,7 @@ class ZooKeeperBase(object):
     zookeeper.close(self.handle)
     print "Zookeeper handle closed and resources freed."
 
-  def _blocker_watcher(handle,type,state,path):
+  def _blocker_watcher(self,handle,type,state,path):
     self.cv.acquire()
     self.cv.notify()
     self.cv.release()
