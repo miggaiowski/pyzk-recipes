@@ -30,7 +30,7 @@ def writer(host, buffersize, text, port):
   Connects to zookeeper and writes
   """
   emptyBuffers = semaphore.ZooKeeperSemaphore("emptybuffers", host, port, buffersize)
-  fullBuffers = semaphore.ZooKeeperSemaphore("fullbuffers", host, port, buffersize)
+  fullBuffers = semaphore.ZooKeeperSemaphore("fullbuffers", host, port)
   try:
     writePt = 0
     for letter in text:

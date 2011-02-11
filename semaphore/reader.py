@@ -30,7 +30,7 @@ def reader(host, buffersize, textsize, port):
   Connects to zookeeper and reads
   """
   emptyBuffers = semaphore.ZooKeeperSemaphore("emptybuffers", host, port, buffersize)
-  fullBuffers = semaphore.ZooKeeperSemaphore("fullbuffers", host, port, buffersize)
+  fullBuffers = semaphore.ZooKeeperSemaphore("fullbuffers", host, port)
   try:
     readPt = 0
     for letter in xrange(textsize):
