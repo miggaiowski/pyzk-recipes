@@ -39,7 +39,7 @@ def reader(host, buffersize, textsize, port):
       fullbuffers.wait()
 
       # read from shared memory and remove it
-      filename = BUFFER_PATTERN % readPt
+      filename = semaphore.BUFFER_PATTERN % readPt
       f = open(filename, 'r')
       data = f.read()
       f.close()

@@ -17,7 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 __AUTHOR__ = "Gustavo Serra Scalet <gsscalet@gmail.com>"
-BUFFER_PATTERN = "buffer%%05d.dat"
+BUFFER_PATTERN = "buffer%05d.dat"
 _CHILD_KEY = "item"
 
 # Grupo 03

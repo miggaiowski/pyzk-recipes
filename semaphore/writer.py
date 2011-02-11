@@ -41,7 +41,7 @@ def writer(host, buffersize, text, port):
       emptybuffers.wait()
 
       # write on shared memory
-      filename = BUFFER_PATTERN % writePt
+      filename = semaphore.BUFFER_PATTERN % writePt
       f = open(filename, 'w')
       f.write(letter)
       f.close()
