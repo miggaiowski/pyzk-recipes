@@ -29,15 +29,16 @@ def reader(host, buffersize, textsize, port):
   """
   Connects to zookeeper and reads
   """
+  # create the semaphores, if they don't exist
   emptyBuffers = semaphore.ZooKeeperSemaphore("emptybuffers", host, port, buffersize)
   fullBuffers = semaphore.ZooKeeperSemaphore("fullbuffers", host, port)
   try:
     readPt = 0
     for letter in xrange(textsize):
-      #waiting for writer
+      # waiting for writer
       fullBuffers.wait()
 
-      #read from shared memory
+      # read from shared memory
       filename = "buffer" + str(readPt)
       f = open(filename, 'r')
       data = f.read()
@@ -45,9 +46,9 @@ def reader(host, buffersize, textsize, port):
       print "Reader: buffer%d = %c" % (readPt, data)
       readPt = (readPt + 1) % buffersize
 
-      #allow writing
+      # allow writing
       emptyBuffers.signal()
-      #sleep random time
+      # sleep random time
       time.sleep(random.random())
   except KeyboardInterrupt:
     pass
