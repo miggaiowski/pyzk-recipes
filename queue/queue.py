@@ -116,11 +116,20 @@ class ZooKeeperQueue(ZooKeeperBase):
     Similar to dequeue, but if the queue is empty, block until an item
     is added and successfully removed.
     """
+    def blocker_watcher(handle,type,state,path):
+      self.cv.acquire()
+      self.cv.notify()
+      self.cv.release()
+
     while True:
-      children = sorted(zookeeper.get_children(self.handle, self.queuename, self.__queueWatcher__))
+      self.cv.acquire()
+      children = sorted(zookeeper.get_children(self.handle, self.queuename, blocker_watcher))
       for child in children:
         data = self.get_and_delete(self.queuename + "/" + child)
         if data != None:
+          self.cv.release()
           return data
+      self.cv.wait()
+      self.cv.release()
 
 # vim:sw=2:ts=2:et
