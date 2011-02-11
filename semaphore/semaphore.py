@@ -68,11 +68,11 @@ class ZooKeeperSemaphore(ZooKeeperBase):
     """
     while True:
       self.cv.acquire()
-      children = zookeeper.get_children(self.handle, self.queuename, self._blocker_watcher)
+      children = zookeeper.get_children(self.handle, self.semaphore_name, self._blocker_watcher)
       for child in children:
         self.get_and_delete("%s/%s" % (self.semaphore_name, child))
         self.cv.release()
-        return int(child.replace(self.child_name, ''))
+        return
       self.cv.wait()
       self.cv.release()
 
