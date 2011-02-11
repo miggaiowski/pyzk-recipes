@@ -62,23 +62,24 @@ class ZooKeeperSemaphore(ZooKeeperBase):
   def wait(self, amount = 1):
     """
     Decreases the signal by @amount and block call if semaphore is 0
+    Returns a unique monotonically increasing sequence number related
+    to the order of signal() calls
     """
     while True:
-      children = zookeeper.get_children(self.handle, self.semaphore_name, self.__queueWatcher__)
-      if len(children) == 0:
-        time.sleep(0.1)
-        continue
-
+      self.cv.acquire()
+      children = sorted(zookeeper.get_children(self.handle, self.queuename, self._blocker_watcher))
       for child in children:
-        data = self.get_and_delete("%s/%s" % (self.semaphore_name, child))
-        if data != None:
-          return data
+        self.get_and_delete("%s/%s" % (self.semaphore_name, child))
+        self.cv.release()
+        return int(child.replace(self.child_name, ''))
+      self.cv.wait()
+      self.cv.release()
 
   def getValue(self):
     """
     Returns the how many times (signal() - wait()) were called
     """
-    return len(zookeeper.get_children(self.handle, self.semaphore_name, self.__queueWatcher__))
+    return len(zookeeper.get_children(self.handle, self.semaphore_name, None))
 
 if __name__ == "__main__":
   semaphore = ZooKeeperSemaphore('test', 'localhost', 32122)

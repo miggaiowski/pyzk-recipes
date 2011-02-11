@@ -55,8 +55,11 @@ class ZooKeeperBase(object):
     zookeeper.close(self.handle)
     print "Zookeeper handle closed and resources freed."
 
-  def __queueWatcher__(self,handle,event,state,path):
-    pass
+  def _blocker_watcher(handle,type,state,path):
+    self.cv.acquire()
+    self.cv.notify()
+    self.cv.release()
+
 
   def get_and_delete(self,node):
     """
@@ -70,7 +73,7 @@ class ZooKeeperBase(object):
       # Someone deleted the node in between our get and delete
       return None
     except zookeeper.BadVersionException, e:
-      # Someone is modifying the queue in place. You can reasonably
+      # Someone is modifying the item in place. You can reasonably
       # either retry to re-read the item, or abort.
       print "Item %d modified in place, aborting..." % node
       raise e
