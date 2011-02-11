@@ -22,7 +22,7 @@ __AUTHOR__ = "David Kurka <david.kurka@gmail.com>"
 
 import zookeeper, semaphore, time, random
 
-MIN_ARGS = 0
+MIN_ARGS = 1
 __VERSION__ = 0.1
 
 def writer(host, buffersize, text, port):
