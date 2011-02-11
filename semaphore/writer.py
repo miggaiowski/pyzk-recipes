@@ -30,15 +30,15 @@ def writer(host, buffersize, text, port):
   Connects to zookeeper and writes
   """
   # create the semaphores, if they don't exist
-  emptyBuffers = semaphore.ZooKeeperSemaphore("emptybuffers", host, port, buffersize)
-  fullBuffers = semaphore.ZooKeeperSemaphore("fullbuffers", host, port)
+  emptybuffers = semaphore.ZooKeeperSemaphore("emptybuffers", host, port, buffersize)
+  fullbuffers = semaphore.ZooKeeperSemaphore("fullbuffers", host, port)
   try:
     writePt = 0
     for letter in text:
       # sleep random time
       time.sleep(random.random())
       # wait for avaiable resourcess
-      emptyBuffers.wait()
+      emptybuffers.wait()
 
       # write on shared memory
       filename = BUFFER_PATTERN % writePt
@@ -49,11 +49,11 @@ def writer(host, buffersize, text, port):
       writePt = (writePt + 1) % buffersize
 
       # allow reading
-      fullBuffers.signal()
+      fullbuffers.signal()
   except KeyboardInterrupt:
     pass
-  # emptyBuffers.__del__()
-  # fullBuffers.__del__()
+  # emptybuffers.__del__()
+  # fullbuffers.__del__()
 
 if __name__ == "__main__":
   from sys import argv, exit
