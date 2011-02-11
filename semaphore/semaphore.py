@@ -49,10 +49,15 @@ class ZooKeeperSemaphore(ZooKeeperBase):
 
   def signal(self,amount = 1):
     """
-    Increases the signal by @amount
+    Increases the signal by @amount and returns a unique monotonically
+    increasing sequence number related to the order of signal() calls
     """
+    zpath = None
     for x in xrange(amount):
-      zookeeper.create(self.handle, self.child_name, "foo", [ZOO_OPEN_ACL_UNSAFE],zookeeper.SEQUENCE)
+      zpath = zookeeper.create(self.handle, self.child_name, "foo", [ZOO_OPEN_ACL_UNSAFE],zookeeper.SEQUENCE)
+
+    if zpath:
+      return int(zpath.replace(self.child_name, ''))
 
   def wait(self, amount = 1):
     """
@@ -74,14 +79,6 @@ class ZooKeeperSemaphore(ZooKeeperBase):
     Returns the how many times (signal() - wait()) were called
     """
     return len(zookeeper.get_children(self.handle, self.semaphore_name, self.__queueWatcher__))
-
-  def lastID(self):
-    """
-    Returns the id of the last item signalled on this semaphore
-    """
-    children = zookeeper.get_children(self.handle, self.semaphore_name, self.__queueWatcher__)
-    last_added = sorted(children)[-1]
-    return int(last_added.replace(_CHILD_KEY, ''))
 
 if __name__ == "__main__":
   semaphore = ZooKeeperSemaphore('test', 'localhost', 32122)
