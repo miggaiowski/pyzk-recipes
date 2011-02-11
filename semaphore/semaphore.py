@@ -27,16 +27,25 @@ from base import *
 
 class ZooKeeperSemaphore(ZooKeeperBase):
   def __init__(self, semaphorename, hostname, port, initial_value = 0):
+    """
+    Starts the semaphore with at least 
+    """
     ZooKeeperBase.__init__(self, hostname, port)
 
     self.semaphore_name = "/" + semaphorename
     self.child_name = "%s/%s" % (self.semaphore_name, _CHILD_KEY)
     try:
       zookeeper.create(self.handle,self.semaphore_name,"semaphore top level", [ZOO_OPEN_ACL_UNSAFE],0)
-      self.signal(initial_value)
-      print "Created new semaphore, OK"
+
     except zookeeper.NodeExistsException:
-      print "Semaphore Already Exists"
+      # removes old entries
+      for x in xrange(self.getValue()):
+        self.wait()
+
+    # add entries
+    for x in xrange(initial_value):
+      self.signal()
+    print "Created new semaphore with value %d" % self.getValue()
 
   def __del__(self):
     # clear the semaphore
