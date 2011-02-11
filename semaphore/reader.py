@@ -20,7 +20,7 @@ __AUTHOR__ = "David Kurka <david.kurka@gmail.com>"
 
 # Grupo 03
 
-import zookeeper, semaphore, time, random
+import zookeeper, semaphore, time, random, os
 
 MIN_ARGS = 1
 __VERSION__ = 0.1
@@ -38,11 +38,12 @@ def reader(host, buffersize, textsize, port):
       # waiting for writer
       fullBuffers.wait()
 
-      # read from shared memory
+      # read from shared memory and remove it
       filename = "buffer" + str(readPt)
       f = open(filename, 'r')
       data = f.read()
       f.close()
+      os.remove(filename)
       print "Reader: buffer%d = %c" % (readPt, data)
       readPt = (readPt + 1) % buffersize
 
