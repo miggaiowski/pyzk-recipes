@@ -69,8 +69,8 @@ if __name__ == "__main__":
     'b' : ['buffersize',
       "Space avaiable for writing (default: 5)",
       5],
-    's' : ['data_lenght',
-      "Lenght of complete message (default: 30)",
+    's' : ['data_length',
+      "Length of complete message (default: 30)",
       30],
   }
 
