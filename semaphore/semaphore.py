@@ -47,27 +47,19 @@ class ZooKeeperSemaphore(ZooKeeperBase):
     print "freeing resources"
     ZooKeeperBase.__del__(self)
 
-  def signal(self,amount = 1):
+  def signal(self):
     """
-    Increases the signal by @amount and returns a unique monotonically
-    increasing sequence number related to the order of signal() calls
+    Increases the semaphore by 1.
     """
-    zpath = None
-    for x in xrange(amount):
-      zpath = zookeeper.create(self.handle, self.child_name, "foo", [ZOO_OPEN_ACL_UNSAFE],zookeeper.SEQUENCE)
+    zookeeper.create(self.handle, self.child_name, "", [ZOO_OPEN_ACL_UNSAFE],zookeeper.SEQUENCE)
 
-    if zpath:
-      return int(zpath.replace(self.child_name, ''))
-
-  def wait(self, amount = 1):
+  def wait(self):
     """
-    Decreases the signal by @amount and block call if semaphore is 0
-    Returns a unique monotonically increasing sequence number related
-    to the order of signal() calls
+    Decreases the semaphore by 1 and block call if semaphore is 0.
     """
     while True:
       self.cv.acquire()
-      children = sorted(zookeeper.get_children(self.handle, self.queuename, self._blocker_watcher))
+      children = zookeeper.get_children(self.handle, self.queuename, self._blocker_watcher)
       for child in children:
         self.get_and_delete("%s/%s" % (self.semaphore_name, child))
         self.cv.release()
